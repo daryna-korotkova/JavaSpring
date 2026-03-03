@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Наші курси</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+<header class="d-flex justify-content-between mb-4">
+  <h2>Доступні курси</h2>
+  <a th:href="@{/cabinet(email=${client.email})}" class="btn btn-outline-info">Мій кабінет</a>
+</header>
+
+<div class="row">
+  <div class="col-md-4 mb-3" th:each="course : ${courses}">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title" th:text="${course.courseName}"></h5>
+        <p class="card-text text-muted" th:text="${course.disciplineName}"></p>
+        <button class="btn btn-success" th:onclick="'showDetails(' + ${course.id} + ')'">Переглянути деталі</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showDetails(courseId) {
+      fetch('/api/courses/' + courseId)
+          .then(response => response.json())
+          .then(data => {
+              alert("Курс: " + data.courseName +
+                    "\nОпис: " + data.description +
+                    "\nЦіна: $" + data.priceUsd +
+                    "\nЦіна в грн (курс 41.50): " + data.priceUah.toFixed(2) + " грн");
+          });
+  }
+</script>
+</body>
+</html>
