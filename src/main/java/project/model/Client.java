@@ -7,7 +7,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "clients")
-@Data // Це створює методи setEmail, setFirstName тощо
+@Data
 public class Client {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,8 +16,10 @@ public class Client {
     private String firstName;
     private String lastName;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false) // Унікальна пошта
     private String email;
+
+    private String password; // Нове поле для пароля
 
     private LocalDate collaborationStartDate;
 
