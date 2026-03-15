@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import project.model.Client;
 import project.model.Course;
 import project.model.Order;
-import project.dto.CurrencyResponse;
+import project.model.CurrencyResponsePrivatBank;
 import project.repository.ClientRepository;
 import project.repository.CourseRepository;
 import project.repository.OrderRepository;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional // Гарантує цілісність даних при роботі з БД
+@Transactional
 public class UserService {
 
     private final ClientRepository clientRepository;
@@ -29,19 +29,15 @@ public class UserService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    /**
-     * Знайти клієнта за email для відображення в Кабінеті або Курсах
-     */
+
     public Client findByEmail(String email) {
         return clientRepository.findByEmail(email).orElse(null);
     }
 
-    /**
-     * Реєстрація нового користувача
-     */
+
     public Client register(String email, String password, String firstName, String lastName) {
         if (clientRepository.findByEmail(email.trim()).isPresent()) {
-            throw new RuntimeException("Користувач з такою поштою вже існує!");
+            throw new RuntimeException("A user with such an email address already exists!");
         }
 
         Client newClient = new Client();
@@ -54,69 +50,74 @@ public class UserService {
         return clientRepository.save(newClient);
     }
 
-    /**
-     * Авторизація користувача
-     */
+
     public Client login(String email, String password) {
         return clientRepository.findByEmail(email.trim())
                 .filter(c -> c.getPassword().equals(password.trim()))
-                .orElseThrow(() -> new RuntimeException("Невірна пошта або пароль"));
+                .orElseThrow(() -> new RuntimeException("Incorrect email address or password"));
     }
 
-    /**
-     * Request API: Отримання курсу валют від ПриватБанку
-     */
+
     public Double getUsdRate() {
         String url = "https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11";
         try {
-            CurrencyResponse[] response = restTemplate.getForObject(url, CurrencyResponse[].class);
+            CurrencyResponsePrivatBank[] response = restTemplate.getForObject(url, CurrencyResponsePrivatBank[].class);
             if (response != null) {
-                parseCurrencyLog(response); // Виклик парсера для логів
+                parseCurrencyLog(response);
                 return Arrays.stream(response)
                         .filter(c -> "USD".equals(c.getCcy()))
                         .findFirst()
-                        .map(CurrencyResponse::getSale)
-                        .orElse(41.50);
+                        .map(CurrencyResponsePrivatBank::getSale)
+                        .orElse(44.50);
             }
         } catch (Exception e) {
-            System.err.println("Помилка API: " + e.getMessage());
+            System.err.println("API error: " + e.getMessage());
         }
-        return 41.50;
+        return 44.50;
     }
 
-    /**
-     * Купівля курсу: перевірка на дублікати та збереження в ORDERS
-     */
+
     @Transactional
     public void purchaseCourse(String email, Long courseId) {
         Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Клієнта не знайдено"));
+                .orElseThrow(() -> new RuntimeException("Client not found"));
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Курс не знайдено"));
+                .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Перевірка, чи курс вже є у списку замовлень клієнта
         boolean alreadyOwned = client.getOrders().stream()
                 .anyMatch(o -> o.getCourse().getId().equals(courseId));
-
         if (alreadyOwned) {
-            throw new RuntimeException("Ви вже придбали цей курс! Перейдіть до кабінету.");
+            throw new RuntimeException("Ви вже придбали цей курс!");
         }
+
+        Double rate = getUsdRate();
+        Double priceInUah = course.getPriceUsd() * rate;
+
+        if (client.getBalance() < priceInUah) {
+            double missingAmount = priceInUah - client.getBalance();
+
+            throw new RuntimeException(
+                    "На балансі недостатньо коштів.<br>" +
+                            "Ваш баланс: " + String.format("%.2f", client.getBalance()) + " грн.<br>" +
+                            "Не вистачає: " + String.format("%.2f", missingAmount) + " грн."
+            );
+        }
+
+        client.setBalance(client.getBalance() - priceInUah);
 
         Order order = new Order();
         order.setClient(client);
         order.setCourse(course);
-        order.setCreatedAt(LocalDateTime.now()); // Фіксація точного часу покупки
+        order.setCreatedAt(LocalDateTime.now());
 
-        // Зберігаємо замовлення (ID генерується автоматично базою)
         orderRepository.save(order);
+        clientRepository.save(client);
     }
 
-    /**
-     * Парсер: модуль для аналізу та збору унікальних сфер навчання з бази
-     */
+
     public List<String> parseDisciplines() {
         List<Course> allCourses = courseRepository.findAll();
-        System.out.println("DEBUG: Запуск локального парсера категорій...");
+        System.out.println("DEBUG: Starting the local category parser...");
 
         List<String> disciplines = allCourses.stream()
                 .map(Course::getDisciplineName)
@@ -124,17 +125,15 @@ public class UserService {
                 .sorted()
                 .collect(Collectors.toList());
 
-        System.out.println("Парсер виявив сфери: " + disciplines);
+        System.out.println("The parser detected the following spheres: " + disciplines);
         return disciplines;
     }
 
-    /**
-     * Лог-парсер для даних з зовнішнього API
-     */
-    public void parseCurrencyLog(CurrencyResponse[] responses) {
-        System.out.println("=== Парсинг даних зовнішнього API ===");
-        for (CurrencyResponse res : responses) {
-            System.out.println("Валюта: " + res.getCcy() + " | Продаж: " + res.getSale());
+
+    public void parseCurrencyLog(CurrencyResponsePrivatBank[] responses) {
+        System.out.println("=== Parsing data from an external API ===");
+        for (CurrencyResponsePrivatBank res : responses) {
+            System.out.println("Currency: " + res.getCcy() + " | For sale: " + res.getSale());
         }
     }
 }

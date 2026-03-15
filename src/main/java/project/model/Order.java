@@ -8,18 +8,18 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "orders")
 @Data
-@NoArgsConstructor // Додано для коректної роботи Hibernate
+@NoArgsConstructor
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Стратегія для автоматичного лічильника в H2
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER) // Завантажуємо клієнта разом із замовленням
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-    @ManyToOne(fetch = FetchType.EAGER) // Завантажуємо курс разом із замовленням
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 

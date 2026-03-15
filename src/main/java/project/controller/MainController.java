@@ -3,8 +3,8 @@ package project.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity; // ПОТРІБЕН ЦЕЙ ІМПОРТ
-import org.springframework.http.HttpStatus;   // ПОТРІБЕН ЦЕЙ ІМПОРТ
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import project.service.UserService;
 import project.repository.CourseRepository;
@@ -64,13 +64,12 @@ public class MainController {
     }
 
     @PostMapping("/purchase")
-    @ResponseBody // Дозволяє повертати текст прямо в JS
+    @ResponseBody
     public ResponseEntity<String> purchaseCourse(@RequestParam String email, @RequestParam Long courseId) {
         try {
             userService.purchaseCourse(email, courseId);
-            return ResponseEntity.ok("Курс успішно придбано!");
+            return ResponseEntity.ok("The course has been successfully purchased!");
         } catch (RuntimeException e) {
-            // Повертаємо помилку 400 (Bad Request) з текстом помилки
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

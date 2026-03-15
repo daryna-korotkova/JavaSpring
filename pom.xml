@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>org.programming.labs.tkachov</groupId>
+    <groupId>project</groupId>
     <artifactId>Courses_Project</artifactId>
     <version>1.0-SNAPSHOT</version>
 

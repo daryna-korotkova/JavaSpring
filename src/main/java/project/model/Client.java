@@ -16,12 +16,15 @@ public class Client {
     private String firstName;
     private String lastName;
 
-    @Column(unique = true, nullable = false) // Унікальна пошта
+    @Column(unique = true, nullable = false)
     private String email;
 
-    private String password; // Нове поле для пароля
+    private String password;
 
     private LocalDate collaborationStartDate;
+
+    @Column(nullable = false)
+    private Double balance = 5000.0;
 
     @OneToMany(mappedBy = "client")
     private List<Order> orders;

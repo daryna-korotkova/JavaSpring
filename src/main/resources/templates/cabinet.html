@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
     body {
@@ -34,6 +35,13 @@
         padding: 20px;
         border: none;
         height: 100%;
+    }
+    .balance-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 20px;
+        border: 1px solid #e0e0e0;
     }
     .course-row {
         transition: all 0.2s;
@@ -79,7 +87,7 @@
   <header class="profile-header d-flex justify-content-between align-items-center">
     <div>
       <h2 class="fw-bold mb-0 text-dark">Особистий кабінет</h2>
-      <p class="text-muted mb-0">Керуйте своїм навчанням та переглядайте придбані курси</p>
+      <p class="text-muted mb-0">Керуйте навчанням та фінансами</p>
     </div>
     <a th:href="@{/courses(email=${client.email})}" class="btn-back">
       <i class="bi bi-arrow-left me-2"></i> Назад до курсів
@@ -111,12 +119,26 @@
               <span class="fw-semibold" th:text="${#temporals.format(client.collaborationStartDate, 'dd MMMM yyyy')}"></span>
             </div>
           </div>
-          <div class="d-flex align-items-center">
+          <div class="d-flex align-items-center mb-3">
             <i class="bi bi-mortarboard me-3 text-primary fs-5"></i>
             <div>
               <small class="text-muted d-block small">Активних курсів</small>
               <span class="fw-bold text-primary fs-5" th:text="${#lists.size(myOrders)}">0</span>
             </div>
+          </div>
+
+          <div class="balance-box shadow-sm border-primary-subtle">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted small fw-bold uppercase">Ваш рахунок:</span>
+              <i class="bi bi-wallet2 text-primary"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-3">
+              <span th:text="${#numbers.formatDecimal(client.balance, 1, 2)}">5000.00</span>
+              <small class="fs-6 fw-normal">грн</small>
+            </h3>
+            <button class="btn btn-primary w-100 btn-sm py-2" onclick="showTopUpError()">
+              <i class="bi bi-plus-lg me-1"></i> Поповнити баланс
+            </button>
           </div>
         </div>
       </div>
@@ -147,7 +169,7 @@
               </div>
               <div class="col-md-3 text-md-end">
                 <span class="status-badge">
-                  <i class="bi bi-check-circle-fill me-1"></i> Активний
+                  <i class="bi bi-check-circle-fill me-1"></i> Оплачено
                 </span>
               </div>
             </div>
@@ -158,7 +180,17 @@
   </div>
 </div>
 
-
+<script>
+  function showTopUpError() {
+      Swal.fire({
+          title: 'Помилка сервісу',
+          text: 'Технічні несправності. Неможливість поповнити рахунок через платіжний шлюз.',
+          icon: 'error',
+          confirmButtonColor: '#764ba2',
+          confirmButtonText: 'Зрозуміло'
+      });
+  }
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

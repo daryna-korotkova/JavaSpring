@@ -21,8 +21,8 @@ public class HtmlParserService {
                 return result.text();
             }
         } catch (Exception e) {
-            System.err.println("Помилка парсингу пошуку: " + e.getMessage());
+            System.err.println("Search parsing error: " + e.getMessage());
         }
-        return "Не вдалося знайти актуальну технічну довідку в мережі.";
+        return "It was not possible to find an up-to-date technical manual online.";
     }
 }

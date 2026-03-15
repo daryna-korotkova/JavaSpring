@@ -63,14 +63,17 @@
         border-radius: 10px;
         padding: 15px;
     }
-    /* Стиль для розпарсених даних з Вікіпедії */
+    /* Стиль для розпарсених даних з автоматичною прокруткою */
     .wiki-section {
         background-color: #eef2ff;
         border-left: 4px solid #667eea;
         padding: 15px;
         border-radius: 8px;
-        font-size: 0.9rem;
-        line-height: 1.5;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        max-height: 350px;
+        overflow-y: auto;
+        text-align: justify;
     }
   </style>
 </head>
@@ -117,14 +120,14 @@
 </div>
 
 <div class="modal fade" id="courseModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content shadow">
+  <div class="modal-dialog modal-dialog-centered modal-xl"> <div class="modal-content shadow">
     <div class="modal-header border-0">
       <h5 class="modal-title fw-bold text-primary"><i class="bi bi-info-circle-fill me-2"></i>Детальна інформація</h5>
       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body">
       <div class="row">
-        <div class="col-md-7 border-end">
+        <div class="col-md-6 border-end">
           <div class="mb-2"><span class="info-label">Курс:</span> <span id="modalCourseName"></span></div>
           <div class="mb-2"><span class="info-label">Сфера:</span> <span id="modalDiscipline"></span></div>
           <div class="mb-3"><span class="info-label">Внутрішній опис:</span> <br> <span id="modalDescription" class="text-muted"></span></div>
@@ -135,7 +138,7 @@
               <strong id="priceUsd"></strong>
             </div>
             <div class="d-flex justify-content-between mb-1">
-              <span>Курс API:</span>
+              <span>Курс USD в грн:</span>
               <span id="currentRate" class="text-muted"></span>
             </div>
             <div class="d-flex justify-content-between border-top pt-2 mt-2">
@@ -145,12 +148,12 @@
           </div>
         </div>
 
-        <div class="col-md-5">
-          <h6 class="fw-bold"><i class="bi bi-wikipedia me-1"></i> Технічна довідка</h6>
+        <div class="col-md-6">
+          <h6 class="fw-bold"><i class="bi bi-globe me-1"></i> Знайдено в мережі</h6>
           <div class="wiki-section" id="modalWikiInfo">
             Завантаження технічних даних із мережі...
           </div>
-          <p class="text-end mt-2"><small class="text-muted italic">Джерело: uk.wikipedia.org</small></p>
+          <p class="text-end mt-2"><small class="text-muted italic">Джерело: DuckDuckGo Parser</small></p>
         </div>
       </div>
     </div>
@@ -169,8 +172,8 @@
 
   function showDetails(courseId) {
       currentCourseId = courseId;
-      // Очищуємо поле вікі перед завантаженням
-      document.getElementById('modalWikiInfo').innerText = "Парсинг даних...";
+
+      document.getElementById('modalWikiInfo').innerText = "Завантаження технічних даних...";
 
       fetch('/api/courses/' + courseId)
           .then(response => response.json())
@@ -181,7 +184,6 @@
               document.getElementById('modalDiscipline').innerText = data.disciplineName;
               document.getElementById('modalDescription').innerText = data.description;
 
-              // Вставляємо розпарсені дані з Wikipedia
               document.getElementById('modalWikiInfo').innerText = data.wikiInfo;
 
               document.getElementById('priceUsd').innerText = "$" + data.priceUsd.toFixed(2);
@@ -218,7 +220,7 @@
               response.text().then(text => {
                   Swal.fire({
                       title: 'Увага!',
-                      text: text,
+                      html: text, // Використовуємо html замість text для переносу рядків
                       icon: 'info',
                       showCancelButton: true,
                       confirmButtonColor: '#764ba2',

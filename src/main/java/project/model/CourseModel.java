@@ -1,9 +1,9 @@
-package project.dto;
+package project.model;
 
 import lombok.Data;
 
 @Data
-public class CourseDTO {
+public class CourseModel {
     private Long id;
     private String disciplineName;
     private String courseName;
